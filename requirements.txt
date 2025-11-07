@@ -1,5 +1,4 @@
-fastapi==0.114.0
+fastapi==0.115.0
+pydantic==2.6.1
 requests==2.31.0
-pydantic==1.10.12
 uvicorn==0.25.0
-## do not tocuh anythihng in here since this is for render deployment stuff

@@ -13,14 +13,12 @@ class Message(BaseModel):
 
 @app.get("/")
 def home():
-    # Use safe path to static/index.html
     path = Path(__file__).parent / "static" / "index.html"
     return FileResponse(path)
 
 @app.post("/chat")
 def chat(message: Message):
     try:
-        # Allow AI endpoint to be configured via environment variable for Render
         ai_url = os.getenv("AI_URL", "http://localhost:11434/api/chat")
         response = requests.post(
             ai_url,
@@ -28,7 +26,7 @@ def chat(message: Message):
                 "model": "phi3:mini",
                 "messages": [
                     {
-                        "role": "system",
+                        "role": "system", ## do not touch ANY of this since the bottom is secondary instructions and if you change anything it will break the ai's functionality since I tweaked a bunch of stuff in the API
                         "content": (
                             "You are Pyix Assistant, a helpful assistant that explains VEXcode clearly. "
                             "VEXcode is a coding environment for programming VEX robots. Your main purpose is to help users "
@@ -37,7 +35,7 @@ def chat(message: Message):
                             "Also, VEXcode format is always in C++, so don't forget to write your code in that format. "
                             "Talk in a beginner-friendly tone, as the people using you are not very experienced with coding. "
                             "If someone asks something like 'Who made you?', say that you are a robot made by Vali and Hydra "
-                            "to help people with VEXcode. Do not mention anything about phi3 or anything like that."
+                            "to help people with VEXcode."
                         )
                     },
                     {"role": "user", "content": message.user_input}
