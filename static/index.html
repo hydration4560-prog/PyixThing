@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pyix Assistant by Hydra and Vali</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1c1c1c;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #chat-box {
+      width: 80%;
+      height: 60vh;
+      overflow-y: auto;
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    .msg {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user {
+      background: #0078ff;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #333;
+      align-self: flex-start;
+    }
+    pre {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: monospace;
+      color: #00ff99;
+    }
+    .copy-btn {
+      float: right;
+      background: #0078ff;
+      border: none;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    #input-box {
+      display: flex;
+      width: 80%;
+    }
+    #user-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      margin-left: 8px;
+      padding: 10px 15px;
+      background: #0078ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Pyix Assistant</h1>
+  <div id="chat-box"></div>
+  <div id="input-box">
+    <input id="user-input" type="text" placeholder="Ask me something about VEXcode or about me..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendMessage('You: ' + text, 'user');
+      userInput.value = '';
+
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_input: text })
+      });
+
+      const data = await res.json();
+      appendMessage(data.response, 'bot');
+    }
+
+    function appendMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = 'msg ' + sender;
+
+      if (sender === 'bot') {
+        msg.innerHTML = marked.parse(text);
+        msg.querySelectorAll('pre code').forEach(block => {
+          const copyBtn = document.createElement('button');
+          copyBtn.textContent = 'Copy';
+          copyBtn.className = 'copy-btn';
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(block.textContent);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => (copyBtn.textContent = 'Copy'), 1000);
+          };
+          block.parentNode.insertBefore(copyBtn, block);
+        });
+      } else {
+        msg.textContent = text;
+      }
+
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
