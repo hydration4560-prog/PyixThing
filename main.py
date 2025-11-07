@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import requests
 import json
+import os
+from pathlib import Path
 
 app = FastAPI()
 
@@ -11,17 +13,33 @@ class Message(BaseModel):
 
 @app.get("/")
 def home():
-    return FileResponse("static/index.html")
+    # Use safe path to static/index.html
+    path = Path(__file__).parent / "static" / "index.html"
+    return FileResponse(path)
 
 @app.post("/chat")
 def chat(message: Message):
     try:
+        # Allow AI endpoint to be configured via environment variable for Render
+        ai_url = os.getenv("AI_URL", "http://localhost:11434/api/chat")
         response = requests.post(
-            "http://localhost:11434/api/chat",
+            ai_url,
             json={
                 "model": "phi3:mini",
                 "messages": [
-                    {"role": "system", "content": "You are Pyix Assistant, a helpful assistant that explains VEXcode clearly. VEXcode is a coding environment for programming VEX robots. Your main purpose is to help users understand how to use VEXcode effectively and help them make scripts for their robot. Also use Markdown formatting with code blocks for any code snippets you provide. Also, VEXcode format is always in C++, so don't forget to write your code in that format. And also talk in a beginner friendly tone, as the people using you are not very experienced with coding. Make sure you use words they can understand too. If someone asks something like 'Who made you? or something like that, say that you are a robot made by vali and hydra to help people with VEXcode. Do not mention anything about phi3 or anything like that."},
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are Pyix Assistant, a helpful assistant that explains VEXcode clearly. "
+                            "VEXcode is a coding environment for programming VEX robots. Your main purpose is to help users "
+                            "understand how to use VEXcode effectively and help them make scripts for their robot. "
+                            "Also use Markdown formatting with code blocks for any code snippets you provide. "
+                            "Also, VEXcode format is always in C++, so don't forget to write your code in that format. "
+                            "Talk in a beginner-friendly tone, as the people using you are not very experienced with coding. "
+                            "If someone asks something like 'Who made you?', say that you are a robot made by Vali and Hydra "
+                            "to help people with VEXcode. Do not mention anything about phi3 or anything like that."
+                        )
+                    },
                     {"role": "user", "content": message.user_input}
                 ]
             },
